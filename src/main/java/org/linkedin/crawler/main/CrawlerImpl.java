@@ -11,10 +11,17 @@ import org.linkedin.crawler.interfaces.Crawler;
 public class CrawlerImpl implements Crawler {
 
 	private Document linkedinPage;
+	private final String defaultUrl = "http://google.fr";
 	private final static Logger logger = LogManager.getLogger();
 
 	private CrawlerImpl() {
 		super();
+		try {
+			this.linkedinPage = Jsoup.connect(defaultUrl).get();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 
 	private CrawlerImpl(Document linkedinPage) {
@@ -22,14 +29,13 @@ public class CrawlerImpl implements Crawler {
 		this.linkedinPage = linkedinPage;
 	}
 
-	public static Crawler newInstance(String baseUri) {
+	public static CrawlerImpl newInstance(String baseUri) {
 		logger.debug("Creating new crawler");
 		Document result = null;
 		try {
 			result = Jsoup.connect(baseUri).get();
 		} catch (IOException e) {
-			logger.warn("This crawler probably doesn't do what you want");
-			logger.error("Error while creating document, default crawler will be returned", e);
+			logger.error("Error while creating document, default crawler will be returned with google url", e);
 		}
 		if (result == null) {
 			return new CrawlerImpl();
@@ -43,17 +49,18 @@ public class CrawlerImpl implements Crawler {
 	}
 
 	public void crawl() {
-		logger.debug("Page " + isPageCorrect());
+		logger.debug("Page " + isPageCorrect("LinkedIn"));
+
 	}
-	
-	private boolean isPageCorrect(){
-		if (this.linkedinPage.text().contains("Google")) {
-			logger.debug("This is google!");
-			logger.debug(linkedinPage);
+
+	public boolean isPageCorrect(String checker) {
+		if (this.linkedinPage.text().contains(checker)) {
+			logger.debug("This is linkedin!");
+			logger.debug(linkedinPage.text());
 			return true;
 		} else {
 			logger.debug("Shit I fucked up");
-			logger.debug(linkedinPage.baseUri());
+			logger.debug(linkedinPage.text());
 			return false;
 		}
 	}
